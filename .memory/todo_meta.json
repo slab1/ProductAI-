@@ -12,14 +12,14 @@
         "id": "2",
         "content": "Design Technical Architecture",
         "details": "Design comprehensive technical architecture including: Frontend (React + TypeScript), Backend (Supabase), AI Integration (OpenAI API, Anthropic), Database Schema, Authentication System, API Design, File Storage, Real-time Features, and Infrastructure components.",
-        "status": "in_progress",
+        "status": "completed",
         "priority": "high"
       },
       "3": {
         "id": "3",
         "content": "Setup Development Environment and Backend",
         "details": "Initialize React project, configure Supabase backend, setup database tables and schemas, implement authentication system, create edge functions for AI processing, setup file storage for user data and templates.",
-        "status": "pending",
+        "status": "in_progress",
         "priority": "high"
       },
       "4": {
