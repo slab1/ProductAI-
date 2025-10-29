@@ -3,9 +3,9 @@
     "Coordinator": {
       "1": {
         "id": "1",
-        "content": "Enhance authentication system with missing features",
-        "details": "1. Add password reset functionality to AuthContext\n2. Create email confirmation handling\n3. Add Forgot Password link to LoginPage\n4. Create password reset pages\n5. Update authentication flow to handle email confirmation properly\n6. Test complete authentication flow",
-        "status": "completed",
+        "content": "Troubleshoot project saving issue after backend deployment",
+        "details": "1. ✅ Identified issue: Projects not saving despite successful login\n2. ⏳ NEXT: User to check browser console for specific error messages\n3. ⏳ Verify projects table exists in Supabase dashboard\n4. ⏳ Check RLS policies are properly applied\n5. ⏳ Run manual database test to isolate the issue\n6. ⏳ Apply specific fix based on error diagnosis",
+        "status": "in_progress",
         "priority": "high"
       }
     }
