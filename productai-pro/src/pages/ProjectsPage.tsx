@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, Project } from '@/lib/supabase'
-import { Plus, FolderOpen } from 'lucide-react'
+import { Plus, FolderOpen, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function ProjectsPage() {
@@ -8,6 +8,7 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string>('')
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -23,24 +24,52 @@ export default function ProjectsPage() {
     try {
       if (!user) {
         console.log('No user found, skipping project load')
+        setDebugInfo('Not logged in')
         return
       }
 
       console.log('Loading projects for user:', user.id)
+      setDebugInfo(`Loading for user: ${user.id}`)
       
-      const { data, error } = await supabase
-        .from('projects')
+      // First, check if user profile exists
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
         .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError) {
+        console.error('Profile error:', profileError)
+        setDebugInfo(`Profile missing: ${profileError.message}`)
+      } else {
+        console.log('Profile found:', profile)
+        setDebugInfo(`Profile: ${profile.email}`)
+      }
+
+      // Load projects with detailed error handling
+      const { data, error, count } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact' })
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false })
 
       if (error) {
         console.error('Error loading projects:', error)
+        setDebugInfo(prev => `${prev} | Projects error: ${error.message}`)
         return
       }
 
-      console.log('Projects loaded:', data?.length || 0, 'projects')
-      if (data) setProjects(data)
+      console.log('Projects query result:', { data, count })
+      setDebugInfo(prev => `${prev} | Found ${count || 0} projects`)
+      
+      if (data) {
+        setProjects(data)
+        console.log('Projects set in state:', data.length)
+      }
+      
+    } catch (err) {
+      console.error('Unexpected error:', err)
+      setDebugInfo(prev => `${prev} | Error: ${err.message || err}`)
     } finally {
       setLoading(false)
     }
@@ -55,19 +84,33 @@ export default function ProjectsPage() {
 
     try {
       console.log('Creating project for user:', user.id)
+      setDebugInfo(prev => `${prev} | Creating project...`)
       
-      const { data, error } = await supabase.from('projects').insert({
+      // Test UUID generation first
+      const { data: uuidTest } = await supabase.rpc('uuid_generate_v4')
+      console.log('UUID test:', uuidTest)
+      
+      const projectData = {
         ...formData,
         owner_id: user.id,
         status: 'active'
-      }).select()
+      }
+      
+      console.log('Project data to insert:', projectData)
+      
+      const { data, error } = await supabase
+        .from('projects')
+        .insert(projectData)
+        .select()
 
       if (error) {
-        console.error('Insert error:', error)
+        console.error('Insert error details:', error)
+        setDebugInfo(prev => `${prev} | Insert failed: ${error.message}`)
         throw error
       }
 
       console.log('Project created successfully:', data)
+      setDebugInfo(prev => `${prev} | Created: ${data[0]?.name}`)
       
       setFormData({ name: '', description: '', start_date: '', target_launch_date: '' })
       setShowForm(false)
@@ -78,6 +121,7 @@ export default function ProjectsPage() {
       alert('Project created successfully!')
     } catch (error) {
       console.error('Error creating project:', error)
+      setDebugInfo(prev => `${prev} | Failed: ${error.message || error}`)
       alert(`Failed to create project: ${error.message || error}`)
     }
   }
@@ -88,6 +132,17 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
           <p className="mt-2 text-gray-600">Manage your product projects</p>
+          {debugInfo && (
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start">
+                <AlertCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-medium text-blue-800">Debug Info</h4>
+                  <p className="text-sm text-blue-700 mt-1">{debugInfo}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <button
           onClick={() => setShowForm(true)}
