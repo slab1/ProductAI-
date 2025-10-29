@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Check, Sparkles, Crown } from 'lucide-react'
+import { Check, Sparkles, Crown, Loader2 } from 'lucide-react'
+
+// Stripe Price IDs - These should be configured in your Stripe Dashboard
+const STRIPE_PRICE_IDS = {
+  pro_monthly: import.meta.env.VITE_STRIPE_PRICE_PRO_MONTHLY || 'price_pro_monthly',
+  enterprise_monthly: import.meta.env.VITE_STRIPE_PRICE_ENTERPRISE_MONTHLY || 'price_enterprise_monthly'
+}
 
 const PLANS = [
   {
@@ -17,6 +23,7 @@ const PLANS = [
     name: 'Pro Plan',
     price: 299,
     interval: 'month',
+    stripePriceId: STRIPE_PRICE_IDS.pro_monthly,
     features: ['Unlimited projects', 'Full RICE framework with exports', 'Unlimited AI generations', 'Advanced visualizations', 'Priority support', 'Team collaboration (up to 5 members)'],
     monthlyLimit: -1,
     popular: true
@@ -26,6 +33,7 @@ const PLANS = [
     name: 'Enterprise',
     price: 999,
     interval: 'month',
+    stripePriceId: STRIPE_PRICE_IDS.enterprise_monthly,
     features: ['Everything in Pro', 'Unlimited team members', 'Custom integrations', 'Dedicated support', 'SLA guarantees', 'Advanced analytics'],
     monthlyLimit: -1
   }
@@ -34,25 +42,68 @@ const PLANS = [
 export default function SubscriptionPage() {
   const { user, profile } = useAuth()
   const [loading, setLoading] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSubscribe = async (planType: string) => {
+  useEffect(() => {
+    // Check for success/cancel parameters from Stripe redirect
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('success') === 'true') {
+      setSuccessMessage('Subscription activated successfully! Your account will be updated shortly.')
+      // Clear URL parameters
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+    if (urlParams.get('canceled') === 'true') {
+      setErrorMessage('Subscription canceled. Feel free to try again when ready.')
+      // Clear URL parameters
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
+
+  const handleSubscribe = async (planType: string, stripePriceId?: string) => {
     if (!user) {
-      alert('Please sign in to subscribe')
+      setErrorMessage('Please sign in to subscribe')
       return
     }
+
+    if (planType === 'free') {
+      setErrorMessage('You are already on the free tier')
+      return
+    }
+
+    if (!stripePriceId) {
+      setErrorMessage('Invalid plan configuration. Please contact support.')
+      return
+    }
+
     setLoading(planType)
+    setErrorMessage('')
+    setSuccessMessage('')
+
     try {
-      const { data, error } = await supabase.functions.invoke('create-subscription', {
-        body: { planType, customerEmail: user.email }
+      // Call the stripe-create-checkout edge function
+      const { data, error } = await supabase.functions.invoke('stripe-create-checkout', {
+        body: {
+          priceId: stripePriceId,
+          userId: user.id,
+          email: user.email,
+          tier: planType
+        }
       })
-      if (error) throw error
-      if (data?.data?.checkoutUrl || data?.checkoutUrl) {
-        window.location.href = data?.data?.checkoutUrl || data?.checkoutUrl
+
+      if (error) {
+        throw new Error(error.message || 'Failed to create checkout session')
       }
-    } catch (error: any) {
-      console.error('Subscription error:', error)
-      alert(error.message || 'Failed to create subscription')
-    } finally {
+
+      // Redirect to Stripe Checkout
+      if (data?.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('No checkout URL received from server')
+      }
+    } catch (err: any) {
+      console.error('Subscription error:', err)
+      setErrorMessage(err.message || 'Failed to initiate subscription. Please try again.')
       setLoading(null)
     }
   }
@@ -63,6 +114,20 @@ export default function SubscriptionPage() {
         <h1 className="text-4xl font-bold text-gray-900">Choose Your Plan</h1>
         <p className="mt-4 text-xl text-gray-600">Unlock the full power of AI-driven product management</p>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+          <p className="text-sm text-green-900">{successMessage}</p>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <p className="text-sm text-red-900">{errorMessage}</p>
+        </div>
+      )}
 
       {profile && (
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-center">
@@ -97,11 +162,22 @@ export default function SubscriptionPage() {
                 ))}
               </ul>
               <button
-                onClick={() => handleSubscribe(plan.type)}
+                onClick={() => handleSubscribe(plan.type, plan.stripePriceId)}
                 disabled={loading === plan.type || profile?.subscription_tier === plan.type || plan.type === 'free'}
-                className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${plan.popular ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors flex items-center justify-center ${plan.popular ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {loading === plan.type ? 'Processing...' : profile?.subscription_tier === plan.type ? 'Current Plan' : plan.type === 'free' ? 'Default Plan' : `Upgrade to ${plan.name}`}
+                {loading === plan.type ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : profile?.subscription_tier === plan.type ? (
+                  'Current Plan'
+                ) : plan.type === 'free' ? (
+                  'Default Plan'
+                ) : (
+                  `Upgrade to ${plan.name}`
+                )}
               </button>
             </div>
           </div>

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { supabase, Feature, Project } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Plus, Save, Trash2, BarChart, Sparkles } from 'lucide-react'
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 export default function RICEPage() {
   const { user } = useAuth()
@@ -281,20 +280,39 @@ export default function RICEPage() {
         </div>
       )}
 
-      {/* Chart Visualization */}
+      {/* RICE Score Visualization */}
       {features.length > 0 && chartData.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <h2 className="text-lg font-semibold mb-4">RICE Score Visualization</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <RechartsBarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="rice" fill="#4f46e5" name="RICE Score" />
-            </RechartsBarChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">RICE Score Visualization</h2>
+            <div className="text-sm text-gray-500">Top {Math.min(10, chartData.length)} Features</div>
+          </div>
+          <div className="space-y-4">
+            {chartData.slice(0, 10).map((item, index) => {
+              const maxScore = Math.max(...chartData.map(d => d.rice))
+              const percentage = (item.rice / maxScore) * 100
+              return (
+                <div key={index} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700 truncate max-w-xs">{item.name}</span>
+                    <span className="font-semibold text-indigo-600 ml-2">{item.rice.toFixed(1)}</span>
+                  </div>
+                  <div className="h-8 bg-gray-100 rounded-lg overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg transition-all duration-500 flex items-center justify-end px-3"
+                      style={{ width: `${percentage}%` }}
+                    >
+                      {percentage > 20 && (
+                        <span className="text-white text-xs font-medium">
+                          {item.rice.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
