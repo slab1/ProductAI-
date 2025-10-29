@@ -5,14 +5,14 @@
         "id": "1",
         "content": "Select and Define Product Requirements",
         "details": "Choose ProductAI Pro as the MVP product. Define core features: RICE Framework Automation, User Story Generator, Roadmap Intelligence, Sprint Planning Assistant, Stakeholder Communication Templates, Competitive Analysis Dashboard, OKR Alignment Engine. Create detailed product specifications and user stories.",
-        "status": "pending",
+        "status": "completed",
         "priority": "high"
       },
       "2": {
         "id": "2",
         "content": "Design Technical Architecture",
         "details": "Design comprehensive technical architecture including: Frontend (React + TypeScript), Backend (Supabase), AI Integration (OpenAI API, Anthropic), Database Schema, Authentication System, API Design, File Storage, Real-time Features, and Infrastructure components.",
-        "status": "pending",
+        "status": "in_progress",
         "priority": "high"
       },
       "3": {
