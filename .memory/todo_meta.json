@@ -1,0 +1,62 @@
+{
+  "todos": {
+    "Coordinator": {
+      "1": {
+        "id": "1",
+        "content": "Select and Define Product Requirements",
+        "details": "Choose ProductAI Pro as the MVP product. Define core features: RICE Framework Automation, User Story Generator, Roadmap Intelligence, Sprint Planning Assistant, Stakeholder Communication Templates, Competitive Analysis Dashboard, OKR Alignment Engine. Create detailed product specifications and user stories.",
+        "status": "pending",
+        "priority": "high"
+      },
+      "2": {
+        "id": "2",
+        "content": "Design Technical Architecture",
+        "details": "Design comprehensive technical architecture including: Frontend (React + TypeScript), Backend (Supabase), AI Integration (OpenAI API, Anthropic), Database Schema, Authentication System, API Design, File Storage, Real-time Features, and Infrastructure components.",
+        "status": "pending",
+        "priority": "high"
+      },
+      "3": {
+        "id": "3",
+        "content": "Setup Development Environment and Backend",
+        "details": "Initialize React project, configure Supabase backend, setup database tables and schemas, implement authentication system, create edge functions for AI processing, setup file storage for user data and templates.",
+        "status": "pending",
+        "priority": "high"
+      },
+      "4": {
+        "id": "4",
+        "content": "Develop Core AI Features",
+        "details": "Implement RICE Framework Automation (prioritization scoring), User Story Generator (AI-powered story creation), Roadmap Intelligence (visual roadmap builder), Sprint Planning Assistant (task breakdown), Competitive Analysis Dashboard (competitor data integration), OKR Alignment Engine (goal setting).",
+        "status": "pending",
+        "priority": "high"
+      },
+      "5": {
+        "id": "5",
+        "content": "Build User Interface and Experience",
+        "details": "Create responsive dashboard, implement feature workflows, design data visualization components, build form interfaces for user input, create templates and library views, implement export and sharing features.",
+        "status": "pending",
+        "priority": "high"
+      },
+      "6": {
+        "id": "6",
+        "content": "Implement Data Management and Integration",
+        "details": "Setup user data persistence, implement project management integrations (Jira, Asana, Linear APIs), create template library, implement data backup and recovery, add user preference settings.",
+        "status": "pending",
+        "priority": "medium"
+      },
+      "7": {
+        "id": "7",
+        "content": "Testing and Quality Assurance",
+        "details": "Implement comprehensive testing suite, test AI feature accuracy, verify integrations, perform user experience testing, security testing, performance optimization, and load testing.",
+        "status": "pending",
+        "priority": "medium"
+      },
+      "8": {
+        "id": "8",
+        "content": "Deployment and Launch Preparation",
+        "details": "Deploy to production environment, setup monitoring and analytics, prepare user documentation, create onboarding flow, setup billing system, and prepare marketing landing page.",
+        "status": "pending",
+        "priority": "medium"
+      }
+    }
+  }
+}
