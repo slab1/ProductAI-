@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Lock, Mail, User, AlertCircle } from 'lucide-react'
+import EmailConfirmationPage from './EmailConfirmationPage'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -9,8 +10,8 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const { signUp } = useAuth()
-  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -19,12 +20,23 @@ export default function SignupPage() {
 
     try {
       await signUp(email, password, fullName)
-      navigate('/dashboard')
+      // If we get here without error, user was created but needs email confirmation
+      setShowConfirmation(true)
     } catch (err: any) {
-      setError(err.message || 'Failed to create account')
+      if (err.message.includes('check your email')) {
+        // Email confirmation required
+        setShowConfirmation(true)
+      } else {
+        setError(err.message || 'Failed to create account')
+      }
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show email confirmation page if signup was successful
+  if (showConfirmation) {
+    return <EmailConfirmationPage email={email} />
   }
 
   return (

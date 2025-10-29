@@ -10,6 +10,9 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  resetPassword: (email: string) => Promise<void>
+  updatePassword: (password: string) => Promise<void>
+  resendConfirmation: (email: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -79,14 +82,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       options: {
-        data: { full_name: fullName }
+        data: { full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/dashboard`
       }
     })
     if (error) throw error
 
-    // Create profile
+    // Create profile if user is confirmed immediately (like in dev mode)
+    if (data.user && !data.user.email_confirmed_at) {
+      // User needs to confirm email - show message but don't create profile yet
+      throw new Error('Please check your email and click the confirmation link to activate your account.')
+    }
+
+    // Create profile if user is confirmed immediately
     if (data.user) {
-      await supabase.from('profiles').insert({
+      const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         email,
         full_name: fullName,
@@ -94,6 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         subscription_status: 'active',
         onboarding_completed: false
       })
+      if (profileError) {
+        console.error('Error creating profile:', profileError)
+      }
     }
   }
 
@@ -102,8 +115,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error
   }
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
+    })
+    if (error) throw error
+  }
+
+  const updatePassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) throw error
+  }
+
+  const resendConfirmation = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`
+      }
+    })
+    if (error) throw error
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading, 
+      signIn, 
+      signUp, 
+      signOut, 
+      refreshProfile,
+      resetPassword,
+      updatePassword,
+      resendConfirmation 
+    }}>
       {children}
     </AuthContext.Provider>
   )

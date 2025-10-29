@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import Layout from '@/components/layout/Layout'
 import LoginPage from '@/pages/LoginPage'
 import SignupPage from '@/pages/SignupPage'
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
+import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import DashboardPage from '@/pages/DashboardPage'
 import RICEPage from '@/pages/RICEPage'
 import UserStoriesPage from '@/pages/UserStoriesPage'
@@ -59,6 +61,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+          <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
           
           <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
           <Route path="/projects" element={<PrivateRoute><ProjectsPage /></PrivateRoute>} />
