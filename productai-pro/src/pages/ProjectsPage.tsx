@@ -17,15 +17,29 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     loadProjects()
-  }, [])
+  }, [user])
 
   const loadProjects = async () => {
     try {
-      const { data } = await supabase
+      if (!user) {
+        console.log('No user found, skipping project load')
+        return
+      }
+
+      console.log('Loading projects for user:', user.id)
+      
+      const { data, error } = await supabase
         .from('projects')
         .select('*')
+        .eq('owner_id', user.id)
         .order('created_at', { ascending: false })
 
+      if (error) {
+        console.error('Error loading projects:', error)
+        return
+      }
+
+      console.log('Projects loaded:', data?.length || 0, 'projects')
       if (data) setProjects(data)
     } finally {
       setLoading(false)
@@ -34,23 +48,37 @@ export default function ProjectsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    if (!user) {
+      alert('Please log in to create projects')
+      return
+    }
 
     try {
-      const { error } = await supabase.from('projects').insert({
+      console.log('Creating project for user:', user.id)
+      
+      const { data, error } = await supabase.from('projects').insert({
         ...formData,
         owner_id: user.id,
         status: 'active'
-      })
+      }).select()
 
-      if (error) throw error
+      if (error) {
+        console.error('Insert error:', error)
+        throw error
+      }
 
+      console.log('Project created successfully:', data)
+      
       setFormData({ name: '', description: '', start_date: '', target_launch_date: '' })
       setShowForm(false)
-      loadProjects()
+      
+      // Reload projects to show the new one
+      await loadProjects()
+      
+      alert('Project created successfully!')
     } catch (error) {
       console.error('Error creating project:', error)
-      alert('Failed to create project')
+      alert(`Failed to create project: ${error.message || error}`)
     }
   }
 
