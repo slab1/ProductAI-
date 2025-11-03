@@ -1,0 +1,56 @@
+# Supabase CLI Configuration for ProductAI Pro
+# Generated on: 2025-10-29 19:07:43
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+site_url = "https://g4zgg2jikz9r.space.minimax.io"
+additional_redirect_urls = ["https://g4zgg2jikz9r.space.minimax.io", "http://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+enable_anonymous_sign_ins = false
+enable_sms_confirmations = false
+enable_phone_confirmations = false
+enable_confirmations = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+secure_password_change = false
+
+[functions.ai-user-story-generator]
+verify_jwt = false
+
+[functions.rice-calculator]
+verify_jwt = false
+
+[functions.ai-competitive-analysis]
+verify_jwt = false
+
+[functions.ai-roadmap-optimizer]
+verify_jwt = false
+
+[functions.sprint-planner]
+verify_jwt = false
+
+[functions.ai-okr-alignment]
+verify_jwt = false
+
+[functions.ai-communication-generator]
+verify_jwt = false
+
+[functions.stripe-create-checkout]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.bootstrap-database]
+verify_jwt = false
